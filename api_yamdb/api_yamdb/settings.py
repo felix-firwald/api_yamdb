@@ -21,6 +21,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'reviews',
+    'api'
 ]
 
 MIDDLEWARE = [
@@ -66,6 +70,7 @@ DATABASES = {
 
 
 # Password validation
+AUTH_USER_MODEL = 'reviews.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -101,3 +106,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
