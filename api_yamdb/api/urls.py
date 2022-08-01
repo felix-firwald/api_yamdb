@@ -4,37 +4,54 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from rest_framework.authtoken import views
 
 from .views import (
+    CategoryViewSet,
+    CommentViewSet,
+    GenreViewSet,
+    ReviewViewSet,
     TitleViewSet,
-    ReviewViewSet
+    UserViewSet
 )
 
 VERSION = 'v1/'
 URL_ROOT_TITLE_ID = r'^titles/(?P<post_id>\d+)/'
+REVIEW_ID = r'(?P<review_id>\d+)/comments'
 
 router_v1 = DefaultRouter()
-
+router_v1.register('users', UserViewSet, basename='users')
 router_v1.register('titles', TitleViewSet, basename='titles')
+router_v1.register('categories', CategoryViewSet, basename='categories')
+router_v1.register('genres', GenreViewSet, basename='genres')
 router_v1.register(
     f'{URL_ROOT_TITLE_ID}reviews',
     ReviewViewSet,
     basename='reviews'
 )
+router_v1.register(
+    f'{URL_ROOT_TITLE_ID}reviews/{REVIEW_ID}',
+    CommentViewSet, basename='comments'
+)
+
 
 urlpatterns = [
     path(
-        'token/',
+        VERSION,
+        include(router_v1.urls)
+    ),
+    path(
+        f'{VERSION}auth/',
+        views.obtain_auth_token
+    ),
+    path(
+        f'{VERSION}token/',
         TokenObtainPairView.as_view(),
         name='token_obtain_pair'
     ),
     path(
-        'token/refresh/',
+        f'{VERSION}token/refresh/',
         TokenRefreshView.as_view(),
         name='token_refresh'
-    ),
-    path(
-        VERSION,
-        include(router_v1.urls)
     ),
 ]
