@@ -5,6 +5,10 @@ from django.utils import timezone
 
 
 class Title(models.Model):
+    id = models.IntegerField(
+        validators=[MinValueValidator(0)],
+        primary_key=True
+    )
     name = models.CharField(max_length=255, verbose_name='Название')
     year = models.IntegerField(
         validators=[MaxValueValidator(timezone.now().year)], verbose_name='Год'
@@ -36,15 +40,23 @@ class Title(models.Model):
 
 
 class GenreTitle(models.Model):
+    id = models.IntegerField(
+        validators=[MinValueValidator(0)],
+        primary_key=True
+    )
     genre = models.ForeignKey('Genre', on_delete=models.CASCADE)
     title = models.ForeignKey('Title', on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.title} {self.genre}'
+        return f'{self.title} {self.genre}'[:60]
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=255, verbose_name='Название')
+    id = models.IntegerField(
+        validators=[MinValueValidator(0)],
+        primary_key=True
+    )
+    name = models.CharField(max_length=256, verbose_name='Название')
     slug = models.SlugField(unique=True, verbose_name='Слаг')
 
     class Meta:
@@ -52,10 +64,14 @@ class Category(models.Model):
         verbose_name_plural = 'Категории'
 
     def __str__(self):
-        return f'{self.name} {self.name}'
+        return f'{self.name} {self.name}'[:60]
 
 
 class Genre(models.Model):
+    id = models.IntegerField(
+        validators=[MinValueValidator(0)],
+        primary_key=True
+    )
     name = models.CharField(max_length=255, verbose_name='Название')
     slug = models.SlugField(unique=True, verbose_name='Слаг')
 
@@ -64,10 +80,14 @@ class Genre(models.Model):
         verbose_name_plural = 'Жанры'
 
     def __str__(self):
-        return f'{self.name} {self.name}'
+        return f'{self.name} {self.name}'[:60]
 
 
 class Review(models.Model):
+    id = models.IntegerField(
+        validators=[MinValueValidator(0)],
+        primary_key=True
+    )
     title = models.ForeignKey(
         'Title',
         on_delete=models.CASCADE,
@@ -103,10 +123,14 @@ class Review(models.Model):
         verbose_name_plural = 'Отзывы'
 
     def __str__(self):
-        return self.text
+        return self.text[:60]
 
 
 class Comment(models.Model):
+    id = models.IntegerField(
+        validators=[MinValueValidator(0)],
+        primary_key=True
+    )
     review = models.ForeignKey(
         'Review', on_delete=models.CASCADE,
         related_name='comments',

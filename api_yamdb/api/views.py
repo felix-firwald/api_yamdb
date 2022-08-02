@@ -50,7 +50,6 @@ from reviews.models import (
     Title,
     Genre,
     Review,
-    Comment
 )
 from .serializers import (
     TitleSerializer,
@@ -196,10 +195,6 @@ def token(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def code(request):
-    """
-    if lost the confirmation code send username and email.
-    And u got code again
-    """
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         username = serializer.data['username']
@@ -211,9 +206,6 @@ def code(request):
 
 
 def send_confirmation_code(user):
-    """
-    Send confirmation code on email
-    """
     confirmation_code = default_token_generator.make_token(user)
     subject = 'Код подтверждения YaMDb'
     message = f'{confirmation_code} - ваш код для авторизации на YaMDb'

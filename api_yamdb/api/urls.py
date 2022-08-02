@@ -12,7 +12,10 @@ from .views import (
     GenreViewSet,
     ReviewViewSet,
     TitleViewSet,
-    UserViewSet
+    UserViewSet,
+    signup,
+    token,
+    code
 )
 
 VERSION = 'v1/'
@@ -40,18 +43,7 @@ urlpatterns = [
         VERSION,
         include(router_v1.urls)
     ),
-    path(
-        f'{VERSION}auth/',
-        views.obtain_auth_token
-    ),
-    path(
-        f'{VERSION}token/',
-        TokenObtainPairView.as_view(),
-        name='token_obtain_pair'
-    ),
-    path(
-        f'{VERSION}token/refresh/',
-        TokenRefreshView.as_view(),
-        name='token_refresh'
-    ),
+    path('v1/auth/signup/', signup, name='signup'),
+    path('v1/auth/token/', token, name='login'),
+    path('v1/auth/code/', code, name='code'),
 ]
