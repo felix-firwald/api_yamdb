@@ -120,7 +120,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsRoleAdmin | ReadOnly,)
+    permission_classes = (IsRoleAdmin, ReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
