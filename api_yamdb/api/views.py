@@ -1,16 +1,19 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
     filters,
     status,
-    viewsets
+    viewsets,
+    mixins
 )
 from rest_framework.decorators import (
     action,
     api_view,
     permission_classes
 )
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -26,6 +29,7 @@ from reviews.models import (
 
 from .filters import TitleFilter
 from .permissions import (
+    SafeMethodsOnlyPermission,
     IsAuthorOrReadOnly,
     IsRoleAdmin,
     IsRoleModerator,
@@ -38,10 +42,11 @@ from .serializers import (
     GenreSerializer,
     ReviewSerializer,
     SignupSerializer,
-    TitleCreateSerializer,
-    TitleSerializer,
+    TitlePostSerializer,
+    TitleGetSerializer,
     TokenSerializer,
-    UserSerializer
+    UserSerializer,
+    ReviewSerializer
 )
 
 from api_yamdb.settings import ADMIN_EMAIL
@@ -51,22 +56,20 @@ from reviews.models import (
     Genre,
     Review,
 )
-from .serializers import (
-    TitleSerializer,
-    ReviewSerializer
-)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    permission_classes = (IsRoleAdmin, ReadOnly,)
-    filterset_class = TitleFilter
+    filter_backends = (DjangoFilterBackend,)
+    http_method_names = ["get", "post", "head", "patch", "delete"]
+    filter_class = TitleFilter
+    pagination_class = LimitOffsetPagination
+    permission_classes = (IsRoleAdmin,)
 
     def get_serializer_class(self):
-        if self.request.method in ('POST', 'PATCH',):
-            return TitleCreateSerializer
-        return TitleSerializer
+        if self.request.method in ("POST", "PATCH"):
+            return TitlePostSerializer
+        return TitleGetSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -98,42 +101,34 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsRoleAdmin | ReadOnly,)
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-
-    @action(
-        detail=False, methods=['delete'],
-        url_path=r'(?P<slug>\w+)',
-        lookup_field='slug', url_name='category_slug'
-    )
-    def get_genre(self, request, slug):
-        category = self.get_object()
-        serializer = CategorySerializer(category)
-        category.delete()
-        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+    search_fields = ("name",)
+    pagination_class = LimitOffsetPagination
+    permission_classes = (SafeMethodsOnlyPermission,)
+    lookup_field = "slug"
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsRoleAdmin, ReadOnly,)
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-
-    @action(
-        detail=False, methods=['delete'],
-        url_path=r'(?P<slug>\w+)',
-        lookup_field='slug', url_name='category_slug'
-    )
-    def get_category(self, request, slug):
-        category = self.get_object()
-        serializer = CategorySerializer(category)
-        category.delete()
-        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+    search_fields = ("name",)
+    pagination_class = LimitOffsetPagination
+    permission_classes = (SafeMethodsOnlyPermission,)
+    lookup_field = "slug"
 
 
 class UserViewSet(viewsets.ModelViewSet):

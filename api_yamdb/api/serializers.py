@@ -17,50 +17,45 @@ class GenreSerializer(serializers.ModelSerializer):
         fields = ('name', 'slug')
 
 
-class TitleCreateSerializer(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(
-        slug_field='slug', queryset=Category.objects.all(),
-    )
+class TitlePostSerializer(serializers.ModelSerializer):
+    description = serializers.CharField(required=False)
     genre = serializers.SlugRelatedField(
-        slug_field='slug', queryset=Genre.objects.all(), many=True
+        slug_field="slug",
+        queryset=Genre.objects,
+        many=True,
+    )
+    category = serializers.SlugRelatedField(
+        slug_field="slug", queryset=Category.objects
     )
 
     class Meta:
+        fields = ("id", "name", "year", "description", "genre", "category")
         model = Title
-        fields = (
-            'id',
-            'name',
-            'year',
-            'description',
-            'genre',
-            'category'
-        )
-
-    def validate_year(self, value):
-        current_year = timezone.now().year
-        if not 0 <= value <= current_year:
-            raise serializers.ValidationError(
-                'Проверьте год создания произведения (должен быть нашей эры).'
-            )
-        return value
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    rating = serializers.SerializerMethodField()
-    category = CategorySerializer()
+class TitleGetSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
+    category = CategorySerializer()
+    rating = serializers.SerializerMethodField("get_rating")
 
     class Meta:
-        model = Title
         fields = (
-            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
+            "id",
+            "name",
+            "year",
+            "rating",
+            "description",
+            "genre",
+            "category",
+            "rating",
         )
+        model = Title
 
-    def get_rating(self, obj):
-        rating = obj.reviews.aggregate(Avg('score')).get('score__avg')
-        if not rating:
-            return rating
-        return round(rating, 1)
+    def get_rating(self, title):
+        reviews = Review.objects.filter(title=title)
+        rating = reviews.all().aggregate(Avg("score"))
+        result = rating["score__avg"]
+        return result
 
 
 class CommentSerializer(serializers.ModelSerializer):
